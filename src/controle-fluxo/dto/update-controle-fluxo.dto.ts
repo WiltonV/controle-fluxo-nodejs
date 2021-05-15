@@ -1,8 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateControleFluxoDto } from './create-controle-fluxo.dto';
+import { ControleFluxoDto } from './controle-fluxo.dto';
 
-export class UpdateControleFluxoDto extends PartialType(
-  CreateControleFluxoDto,
-) {
+export class UpdateControleFluxoDto extends PartialType(ControleFluxoDto) {
   id: number;
 }

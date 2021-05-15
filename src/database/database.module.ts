@@ -6,10 +6,11 @@ import { ControleFluxoEntity } from 'src/controle-fluxo/entities/controle-fluxo.
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      port: 5432,
-      database: 'controleDeFluxo',
       host: 'localhost',
+      username: 'postgres',
       password: 'docker',
+      database: 'controleDeFluxo',
+      port: 5432,
       entities: [ControleFluxoEntity],
       synchronize: true,
     }),

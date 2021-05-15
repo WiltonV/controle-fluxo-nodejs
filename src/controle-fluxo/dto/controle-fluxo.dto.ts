@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateControleFluxoDto {
+export class ControleFluxoDto {
   @ApiProperty()
   idFilial: number;
 

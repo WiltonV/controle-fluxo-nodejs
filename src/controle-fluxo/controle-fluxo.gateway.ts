@@ -12,12 +12,12 @@ import {
 import { ControleFluxoService } from './controle-fluxo.service';
 import { Server, Socket } from 'socket.io';
 
-// import { CreateControleFluxoDto } from './dto/create-controle-fluxo.dto';
+// import { ControleFluxoDto } from './dto/controle-fluxo.dto';
 // import { UpdateControleFluxoDto } from './dto/update-controle-fluxo.dto';
 
 interface ISocketMessage {
-  roomId: number;
-  roomName: string;
+  filialId: number;
+  filialName: string;
   quantity: number;
 }
 
@@ -31,22 +31,34 @@ export class ControleFluxoGateway
   constructor(private readonly controleFluxoService: ControleFluxoService) {}
 
   @SubscribeMessage('msgIncrement')
-  handleIncrement(@MessageBody() data: ISocketMessage) {
-    const { roomId, roomName, quantity } = data;
-    this.server.emit('msgToClient', {
-      roomId: roomId,
-      roomName: roomName,
-      quantity: this.controleFluxoService.increment(quantity),
+  async handleIncrement(@MessageBody() data: ISocketMessage) {
+    const { filialId, filialName, quantity } = data;
+
+    const incrementedValue = await this.controleFluxoService.increment(
+      quantity,
+      filialId,
+    );
+
+    this.server.to(`room_${filialId}`).emit('msgToClient', {
+      filialId: filialId,
+      filialName: filialName,
+      quantity: incrementedValue,
     });
   }
 
   @SubscribeMessage('msgDecrement')
-  handleDecrement(@MessageBody() data: ISocketMessage) {
-    const { roomId, roomName, quantity } = data;
+  async handleDecrement(@MessageBody() data: ISocketMessage) {
+    const { filialId, filialName, quantity } = data;
+
+    const decrementedValue = await this.controleFluxoService.decrement(
+      quantity,
+      filialId,
+    );
+
     this.server.emit('msgToClient', {
-      roomId: roomId,
-      roomName: roomName,
-      quantity: this.controleFluxoService.decrement(quantity),
+      filialId: filialId,
+      filialName: filialName,
+      quantity: decrementedValue,
     });
   }
 
@@ -55,9 +67,9 @@ export class ControleFluxoGateway
     @MessageBody() data: ISocketMessage,
     @ConnectedSocket() client: Socket,
   ) {
-    const { roomId } = data;
-    client.join(`${roomId}`);
-    client.emit('joinedRoom', roomId);
+    const { filialId } = data;
+    client.join(`room_${filialId}`);
+    client.emit('joinedRoom', `room_${filialId}`);
   }
 
   @SubscribeMessage('leaveRoom')
@@ -65,9 +77,9 @@ export class ControleFluxoGateway
     @MessageBody() data: ISocketMessage,
     @ConnectedSocket() client: Socket,
   ) {
-    const { roomId } = data;
-    client.leave(`${roomId}`);
-    client.emit('leavedRoom', roomId);
+    const { filialId } = data;
+    client.leave(`room_${filialId}`);
+    client.emit('leavedRoom', `room_${filialId}`);
   }
 
   afterInit() {
